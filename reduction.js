@@ -23,12 +23,13 @@ export class Complex extends Formulae.ReductionPackage {};
 /**
 	Complex conjugate of an expression
 		
-	number*    ->   number   (decimal, integer of rational)
+	number*    ->   number   (decimal, integer or rational)
 	i*         ->   i
-	(a + b)*   ->   a* + b*
-	(a b)*     ->   a* b*
-	(a / b)*   ->   a* / b*
-	(-a)*      ->   -(a*)
+	(x + y)*   ->   x* + y*
+	(x y)*     ->   x* y*
+	(x ÷ y)*   ->   x* ÷ y*
+	(-x)*      ->   -(x*)
+ 	(x*)*      ->   x
  */
  
 Complex.conjugate = async (conjugate, session) => {
