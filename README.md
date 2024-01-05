@@ -14,5 +14,5 @@ Take a look at this [tutorial](https://formulae.org/?script=tutorials/Complex) t
 
 ### Capabilities ###
 
-* Definition of the [imaginary unit](https://en.wikipedia.org/wiki/Imaginary_unit), shown as ℹ.
+* Definition of the [imaginary unit](https://en.wikipedia.org/wiki/Imaginary_unit), shown as ℹ
 * Definition of the [complex conjugate](https://en.wikipedia.org/wiki/Complex_conjugate) operation, shown as (expression)<sup>*</sup>
