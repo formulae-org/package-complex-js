@@ -24,7 +24,7 @@ export class Complex extends Formulae.ReductionPackage {};
 	Complex conjugate of an expression
 		
 	number*    ->   number   (decimal, integer or rational)
-	ℹ*         ->   ℹ
+	ℹ*         ->   -ℹ
 	(x + y)*   ->   x* + y*
 	(x y)*     ->   x* y*
 	(x ÷ y)*   ->   x* ÷ y*
