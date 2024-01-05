@@ -1,0 +1,7 @@
+{
+	"pathComplex" : "Math.Complex",
+	
+	"nameImaginary" : "Imaginary unit",
+	"nameConjugate" : "Complex conjugate",
+	"leafConjugate" : "Conjugate"
+}
