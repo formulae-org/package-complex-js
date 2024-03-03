@@ -35,7 +35,7 @@ export class Complex extends Formulae.ReductionPackage {};
 Complex.conjugate = async (conjugate, session) => {
 	let e = conjugate.children[0];
 	
-	if (CanonicalArithmetic.isExpressionCanonicalNumeric(e)) {
+	if (e.isInternalNumber()) {
 		conjugate.replaceBy(e);
 		//session.log("Conjugate of a number is the same number");
 		return true;
@@ -117,7 +117,11 @@ Complex.productContainingI = async (multiplication, session) => {
 	
 	switch (occurrences % 4) {
 		case 0:
-			multiplication.children[pos].replaceBy(CanonicalArithmetic.number2Expr(1));
+			multiplication.children[pos].replaceBy(
+				CanonicalArithmetic.canonical2InternalNumber(
+					new CanonicalArithmetic.Integer(1n)
+				)
+			);
 			break;
 		
 		case 1:
@@ -125,7 +129,11 @@ Complex.productContainingI = async (multiplication, session) => {
 			break;
 		
 		case 2:
-			multiplication.children[pos].replaceBy(CanonicalArithmetic.number2Expr(-1));
+			multiplication.children[pos].replaceBy(
+				CanonicalArithmetic.canonical2InternalNumber(
+					new CanonicalArithmetic.Integer(-1n)
+				)
+			);
 			break;
 		
 		case 3: {
@@ -144,41 +152,45 @@ Complex.productContainingI = async (multiplication, session) => {
 	return true;
 };
 
-let containsI = (expr, testing) => {
-	let negative = false;
+/**
+	Returns
+		If testing: Whether the given expression is a proportion of i
+		If not testing: The proportion as a canonical number
+	
+	Examples (testing)
+		i         ->   true
+		-i        ->   true
+		5i        ->   true
+		-3i       ->   true
+		2.5i      ->   true
+		-8.0i     ->   true
+		2/3 i     ->   true
+		any other ->   false
+	
+	Examples (not testing)
+		i       ->   Integer  1
+		-i      ->   Integer -1
+		5i      ->   Integer  5
+		-3i     ->   Integer -3
+		2.5i    ->   Decimal  2.5
+		-8.0i   ->   Decimal -8.0
+		2/3 i   ->   Rational 2/3
+ */
+
+let proportionOfI = (expr, testing) => {
 	let tag = expr.getTag();
 	
 	if (tag === "Math.Complex.Imaginary") return testing ? true : new CanonicalArithmetic.Integer(1);
 	
-	if (tag === "Math.Arithmetic.Negative") {
-		expr = expr.children[0];
-		tag = expr.getTag();
-		if (tag === "Math.Complex.Imaginary") return testing ? true : new CanonicalArithmetic.Integer(-1);
-		negative = true;
-	}
-	
 	if (tag === "Math.Arithmetic.Multiplication") {
 		if (expr.children.length !== 2) return false;
 		
-		if (expr.children[0].getTag() === "Math.Complex.Imaginary") {
-			if (testing) {
-				return CanonicalArithmetic.isExpressionCanonicalNumeric(expr.children[1]);
-			}
-			else {
-				let n = CanonicalArithmetic.expr2CanonicalNumeric(expr.children[1]);
-				if (negative) n = n.negate();
-				return n;
-			}
-		}
-		
 		if (expr.children[1].getTag() === "Math.Complex.Imaginary") {
 			if (testing) {
-				return CanonicalArithmetic.isExpressionCanonicalNumeric(expr.children[0]);
+				return expr.children[0].isInternalNumber();
 			}
 			else {
-				let n = CanonicalArithmetic.expr2CanonicalNumeric(expr.children[0]);
-				if (negative) n = n.negate();
-				return n;
+				return expr.children[0].get("Value");
 			}
 		}
 	}
@@ -186,17 +198,26 @@ let containsI = (expr, testing) => {
 	return false;
 };
 
+/**
+	Groups proportions of I in an addition
+	
+	3i + 5.0i        ->   (3 + 5.0)I      ->   8.0i
+	2.0 + x + 5/2i   ->   x + 4.5i
+	3i - 3.0i        ->   0.0i            ->   0.0
+	5 + 2i - 2i      ->   5 + (2 - 2)i    ->   5 + 0i   ->   5 + 0   ->   5
+ */
+
 Complex.additionContainingI = async (addition, session) => {
 	let pos, n = addition.children.length;
 	
 	for (pos = 0; pos < n; ++pos) {
-		if (containsI(addition.children[pos], true)) {
+		if (proportionOfI(addition.children[pos], true)) {
 			break;
 		}
 	}
 	
 	// there was not any imaginary unit
-	if (pos >= n) return false; // forward to other forms of Multiplication(...)
+	if (pos >= n) return false; // forward to other forms of addition
 	
  	// there was, index is (pos)
 	
@@ -205,12 +226,12 @@ Complex.additionContainingI = async (addition, session) => {
 	let sum = null;
 	
 	for (let i = n - 1; i > pos; --i) {
-		if (containsI(addition.children[i], true)) {
+		if (proportionOfI(addition.children[i], true)) {
 			if (sum === null) {
-				sum = containsI(addition.children[pos], false);
+				sum = proportionOfI(addition.children[pos], false);
 			}
 			
-			sum = sum.addition(containsI(addition.children[i], false), session);
+			sum = sum.addition(proportionOfI(addition.children[i], false), session);
 			addition.removeChildAt(i);
 		}
 	}
@@ -223,38 +244,43 @@ Complex.additionContainingI = async (addition, session) => {
 			addition.removeChildAt(pos);
 		}
 		else {
-			let r = CanonicalArithmetic.canonicalNumeric2Expr(sum);
-			addition.children[0].replaceBy(r);
+			addition.children[0].replaceBy(
+				CanonicalArithmetic.canonical2InternalNumber(sum)
+			);
 		}
 	}
 	else {
-		if (sum.isPositive()) {
+		//if (sum.isPositive()) {
 			if (sum.isOne()) {
 				let r = Formulae.createExpression("Math.Complex.Imaginary");
 				addition.children[pos].replaceBy(r);
 			}
 			else {
 				let r = Formulae.createExpression("Math.Arithmetic.Multiplication");
-				r.addChild(CanonicalArithmetic.canonicalNumeric2Expr(sum));
+				r.addChild(
+					CanonicalArithmetic.canonical2InternalNumber(sum)
+				);
 				r.addChild(Formulae.createExpression("Math.Complex.Imaginary"));
 				addition.children[pos].replaceBy(r);
 			}
-		}
-		else {
-			sum = sum.negate();
-			let r = Formulae.createExpression("Math.Arithmetic.Negative");
-			if (sum.isOne()) {
-				r.addChild(Formulae.createExpression("Math.Complex.Imaginary"))
-				addition.children[pos].replaceBy(r);
-			}
-			else {
-				let m = Formulae.createExpression("Math.Arithmetic.Multiplication");
-				m.addChild(CanonicalArithmetic.canonicalNumeric2Expr(sum));
-				m.addChild(Formulae.createExpression("Math.Complex.Imaginary"));
-				r.addChild(m);
-				addition.children[pos].replaceBy(r);
-			}
-		}
+		//}
+		//else {
+		//	sum = sum.negate();
+		//	let r = Formulae.createExpression("Math.Arithmetic.Negative");
+		//	if (sum.isOne()) {
+		//		r.addChild(Formulae.createExpression("Math.Complex.Imaginary"))
+		//		addition.children[pos].replaceBy(r);
+		//	}
+		//	else {
+		//		let m = Formulae.createExpression("Math.Arithmetic.Multiplication");
+		//		m.addChild(
+		//			CanonicalArithmetic.canonical2InternalNumber(sum)
+		//		);
+		//		m.addChild(Formulae.createExpression("Math.Complex.Imaginary"));
+		//		r.addChild(m);
+		//		addition.children[pos].replaceBy(r);
+		//	}
+		//}
 	}
 	
 	if (addition.children.length == 1) { // just one child
@@ -264,8 +290,235 @@ Complex.additionContainingI = async (addition, session) => {
 	return true;
 };
 
+/**
+	Returns
+		If testing: Whether the given expression is a complex number of the form (number + [number] i)
+		If not testing: Un array containing both the real and imaginary part, as canonical numbers
+	
+	Examples (testing)
+		i         ->   true
+		-i        ->   true
+		5i        ->   true
+		-3i       ->   true
+		2.5i      ->   true
+		-8.0i     ->   true
+		2/3 i     ->   true
+		any other ->   false
+	
+	Examples (not testing)
+		i       ->   Integer  1
+		-i      ->   Integer -1
+		5i      ->   Integer  5
+		-3i     ->   Integer -3
+		2.5i    ->   Decimal  2.5
+		-8.0i   ->   Decimal -8.0
+		2/3 i   ->   Rational 2/3
+ */
+
+let numericComplex = (expr, testing) => {
+	// pure real
+	if (expr.isInternalNumber()) {
+		return testing ? true : [ expr.get("Value"), CanonicalArithmetic.number2Canonical(0) ];
+	}
+	
+	let tag = expr.getTag();
+	if (tag === "Math.Arithmetic.Addition") {
+		if (expr.children.length !== 2) return false;
+		
+		if (proportionOfI(expr.children[1], true)) {
+			if (testing) {
+				return expr.children[0].isInternalNumber();
+			}
+			else {
+				return [ expr.children[0].get("Value"), proportionOfI(expr.children[1], false) ]
+			}
+		}
+		
+		//if (proportionOfI(expr.children[0], true)) {
+		//	if (testing) {
+		//		return CanonicalArithmetic.isExpressionCanonicalNumeric(expr.children[1]);
+		//	}
+		//	else {
+		//		return [ proportionOfI(expr.children[0], false), CanonicalArithmetic.expr2CanonicalNumeric(expr.children[1]) ]
+		//	}
+		//}
+	}
+	else {
+		// pure imaginary
+		return testing ? proportionOfI(expr, true) : [ CanonicalArithmetic.number2Canonical(0), proportionOfI(expr, false) ];
+	}
+	
+	return false;
+};
+
+Complex.division = async (division, session) => {
+	let num = division.children[0];
+	let den = division.children[1];
+	
+	if (!(numericComplex(num, true) && numericComplex(den, true))) return false;
+	
+	let a, b, c, d;
+	{
+		let n1 = numericComplex(num, false);
+		let n2 = numericComplex(den, false);
+		
+		a = n1[0]; b = n1[1];
+		c = n2[0]; d = n2[1];
+	}
+	
+	let common = c.multiplication(c, session).addition(d.multiplication(d, session), session);
+	let real = a.multiplication(c, session).addition(b.multiplication(d, session), session).division(common, session);
+	let imag = b.multiplication(c, session).addition(a.negate().multiplication(d, session), session).division(common, session);
+	
+	
+	
+	
+	
+	let mult = Formulae.createExpression("Math.Arithmetic.Multiplication");
+	mult.addChild(CanonicalArithmetic.canonical2InternalNumber(imag));
+	mult.addChild(Formulae.createExpression("Math.Complex.Imaginary"))
+	
+	let result = Formulae.createExpression("Math.Arithmetic.Addition");
+	result.addChild(CanonicalArithmetic.canonical2InternalNumber(real));
+	result.addChild(mult);
+	
+	division.replaceBy(result);
+	return true;
+};
+
+Complex.exponentiation = async (exponentiation, session) => {
+	let base = exponentiation.children[0];
+	let exponent = exponentiation.children[1];
+	
+	if (!(numericComplex(base, true) && numericComplex(exponent, true))) return false;
+	
+	let a, b, c, d;
+	{
+		let n1 = numericComplex(base, false);
+		let n2 = numericComplex(exponent, false);
+		
+		a = n1[0]; b = n1[1];
+		c = n2[0]; d = n2[1];
+	}
+	
+	let symbolR = Formulae.createExpression("Symbolic.Symbol");
+	symbolR.set("Name", "r");
+	
+	let symbolAngle = Formulae.createExpression("Symbolic.Symbol");
+	symbolAngle.set("Name", "θ");
+	
+	let symbolF = Formulae.createExpression("Symbolic.Symbol");
+	symbolF.set("Name", "f");
+	
+	let symbolArg = Formulae.createExpression("Symbolic.Symbol");
+	symbolArg.set("Name", "arg");
+	
+	let block = Formulae.createExpression(
+		"Programming.Block",
+		Formulae.createExpression(
+			"Symbolic.Local",
+			Formulae.createExpression(
+				"Symbolic.Assignment",
+				symbolR.clone(),
+				Formulae.createExpression(
+					"Math.Arithmetic.SquareRoot",
+					CanonicalArithmetic.canonical2InternalNumber(
+						a.multiplication(a, session).addition(b.multiplication(b, session), session)
+					)
+				)
+			)
+		),
+		Formulae.createExpression(
+			"Symbolic.Local",
+			Formulae.createExpression(
+				"Symbolic.Assignment",
+				symbolAngle.clone(),
+				Formulae.createExpression(
+					"Math.Trigonometric.ArcTangent2",
+					CanonicalArithmetic.canonical2InternalNumber(b),
+					CanonicalArithmetic.canonical2InternalNumber(a)
+				)
+			)
+		),
+		Formulae.createExpression(
+			"Symbolic.Local",
+			Formulae.createExpression(
+				"Symbolic.Assignment",
+				symbolF.clone(),
+				Formulae.createExpression(
+					"Math.Arithmetic.Multiplication",
+					Formulae.createExpression(
+						"Math.Arithmetic.Exponentiation",
+						symbolR.clone(),
+						CanonicalArithmetic.canonical2InternalNumber(c)
+					),
+					Formulae.createExpression(
+						"Math.Arithmetic.Exponentiation",
+						Formulae.createExpression("Math.Constant.Euler"),
+						Formulae.createExpression(
+							"Math.Arithmetic.Multiplication",
+							CanonicalArithmetic.number2InternalNumber(-1),
+							CanonicalArithmetic.canonical2InternalNumber(c),
+							symbolAngle.clone()
+						)
+					)
+				)
+			)
+		),
+		Formulae.createExpression(
+			"Symbolic.Local",
+			Formulae.createExpression(
+				"Symbolic.Assignment",
+				symbolArg.clone(),
+				Formulae.createExpression(
+					"Math.Arithmetic.Addition",
+					Formulae.createExpression(
+						"Math.Arithmetic.Multiplication",
+						CanonicalArithmetic.canonical2InternalNumber(d),
+						Formulae.createExpression(
+							"Math.Transcendental.NaturalLogarithm",
+							symbolR.clone()
+						)
+					),
+					Formulae.createExpression(
+						"Math.Arithmetic.Multiplication",
+						CanonicalArithmetic.canonical2InternalNumber(c),
+						symbolAngle.clone()
+					)
+				)
+			)
+		),
+		Formulae.createExpression(
+			"Math.Arithmetic.Addition",
+			Formulae.createExpression(
+				"Math.Arithmetic.Multiplication",
+				symbolF.clone(),
+				Formulae.createExpression(
+					"Math.Trigonometric.Cosine",
+					symbolArg.clone()
+				)
+			),
+			Formulae.createExpression(
+				"Math.Arithmetic.Multiplication",
+				symbolF.clone(),
+				Formulae.createExpression(
+					"Math.Trigonometric.Sine",
+					symbolArg.clone()
+				),
+				Formulae.createExpression("Math.Complex.Imaginary")
+			)
+		)
+	);
+	
+	exponentiation.replaceBy(block);
+	//await session.reduce(block);
+	return true;
+};
+
 Complex.setReducers = () => {
 	ReductionManager.addReducer("Math.Complex.Conjugate",         Complex.conjugate,           "Complex.conjugate");
 	ReductionManager.addReducer("Math.Arithmetic.Multiplication", Complex.productContainingI,  "Complex.productContainingI");
 	ReductionManager.addReducer("Math.Arithmetic.Addition",       Complex.additionContainingI, "Complex.additionContainingI");
+	ReductionManager.addReducer("Math.Arithmetic.Division",       Complex.division,            "Complex.division");
+	ReductionManager.addReducer("Math.Arithmetic.Exponentiation", Complex.exponentiation,      "Complex.exponentiation");
 };
