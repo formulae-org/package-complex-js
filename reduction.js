@@ -511,7 +511,7 @@ Complex.exponentiation = async (exponentiation, session) => {
 	);
 	
 	exponentiation.replaceBy(block);
-	//await session.reduce(block);
+	await session.reduce(block);
 	return true;
 };
 
