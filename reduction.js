@@ -370,10 +370,6 @@ Complex.division = async (division, session) => {
 	let real = a.multiplication(c, session).addition(b.multiplication(d, session), session).division(common, session);
 	let imag = b.multiplication(c, session).addition(a.negate().multiplication(d, session), session).division(common, session);
 	
-	
-	
-	
-	
 	let mult = Formulae.createExpression("Math.Arithmetic.Multiplication");
 	mult.addChild(CanonicalArithmetic.canonical2InternalNumber(imag));
 	mult.addChild(Formulae.createExpression("Math.Complex.Imaginary"))
@@ -400,6 +396,72 @@ Complex.exponentiation = async (exponentiation, session) => {
 		a = n1[0]; b = n1[1];
 		c = n2[0]; d = n2[1];
 	}
+	
+	// decimal
+	
+	if (
+		a instanceof CanonicalArithmetic.Decimal ||
+		b instanceof CanonicalArithmetic.Decimal ||
+		c instanceof CanonicalArithmetic.Decimal ||
+		d instanceof CanonicalArithmetic.Decimal
+	) {
+		if (!(a instanceof CanonicalArithmetic.Decimal)) a = a.toDecimal(session);
+		if (!(b instanceof CanonicalArithmetic.Decimal)) b = b.toDecimal(session);
+		if (!(c instanceof CanonicalArithmetic.Decimal)) c = c.toDecimal(session);
+		if (!(d instanceof CanonicalArithmetic.Decimal)) d = d.toDecimal(session);
+		
+		a = a.decimal;
+		b = b.decimal;
+		c = c.decimal;
+		d = d.decimal;
+		
+		let r = session.Decimal.sqrt(
+			session.Decimal.add(
+				session.Decimal.mul(a, a),
+				session.Decimal.mul(b, b)
+			)
+		);
+		let angle = session.Decimal.atan2(b, a)
+		let f = session.Decimal.mul(
+			session.Decimal.pow(r, c),
+			session.Decimal.exp(
+				session.Decimal.mul(
+					d.neg(),
+					angle
+				)
+			)
+		);
+		let arg = session.Decimal.add(
+			session.Decimal.mul(
+				d,
+				session.Decimal.ln(r)
+			),
+			session.Decimal.mul(c, angle)
+		);
+		let re = session.Decimal.mul(
+			f,
+			session.Decimal.cos(arg)
+		);
+		let im = session.Decimal.mul(
+			f,
+			session.Decimal.sin(arg)
+		);
+		
+		exponentiation.replaceBy(
+			Formulae.createExpression(
+				"Math.Arithmetic.Addition",
+				CanonicalArithmetic.number2InternalNumber(re, true, session),
+				Formulae.createExpression(
+					"Math.Arithmetic.Multiplication",
+					CanonicalArithmetic.number2InternalNumber(im, true, session),
+					Formulae.createExpression("Math.Complex.Imaginary")
+				)
+			)
+		);
+		return true;
+	}
+	
+	// closed form
 	
 	let symbolR = Formulae.createExpression("Symbolic.Symbol");
 	symbolR.set("Name", "r");
