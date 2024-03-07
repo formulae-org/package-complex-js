@@ -520,7 +520,7 @@ Complex.exponentiation = async (exponentiation, session) => {
 						Formulae.createExpression(
 							"Math.Arithmetic.Multiplication",
 							CanonicalArithmetic.number2InternalNumber(-1),
-							CanonicalArithmetic.canonical2InternalNumber(c),
+							CanonicalArithmetic.canonical2InternalNumber(d),
 							symbolAngle.clone()
 						)
 					)
