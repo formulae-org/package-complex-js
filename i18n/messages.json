@@ -3,5 +3,8 @@
 	
 	"nameImaginary" : "Imaginary unit",
 	"nameConjugate" : "Complex conjugate",
-	"leafConjugate" : "Conjugate"
+	"leafConjugate" : "Conjugate",
+	
+	"labelComplex"       : "Complex",
+	"labelConjugateStyle": "Conjugate style"
 }

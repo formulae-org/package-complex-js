@@ -3,5 +3,8 @@
 	
 	"nameImaginary" : "Unidad imaginaria",
 	"nameConjugate" : "Complejo conjugado",
-	"leafConjugate" : "Complejo conjugado"
+	"leafConjugate" : "Complejo conjugado",
+	
+	"labelComplex"       : "Aritmética compleja",
+	"labelConjugateStyle": "Estilo de conjugado"
 }
