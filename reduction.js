@@ -44,8 +44,11 @@ Complex.conjugate = async (conjugate, session) => {
 	let tag = e.getTag();
 	switch (tag) {
 		case "Math.Complex.Imaginary": {
-			let result = Formulae.createExpression("Math.Arithmetic.Negative");
-			result.addChild(e);
+			let result = Formulae.createExpression(
+				"Math.Arithmetic.Multiplication",
+				CanonicalArithmetic.number2InternalNumber(-1),
+				e
+			);
 			conjugate.replaceBy(result);
 			//session.log("Conjugate of a imaginary number");
 			session.reduce(result);
@@ -147,6 +150,9 @@ Complex.productContainingI = async (multiplication, session) => {
 	
 	if (multiplication.children.length == 1) { // just one child
 		multiplication.replaceBy(multiplication.children[0]);
+	}
+	else {
+		await session.reduce(multiplication);
 	}
 	
 	return true;
