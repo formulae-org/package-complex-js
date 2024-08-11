@@ -339,15 +339,6 @@ let numericComplex = (expr, testing) => {
 				return [ expr.children[0].get("Value"), proportionOfI(expr.children[1], false) ]
 			}
 		}
-		
-		//if (proportionOfI(expr.children[0], true)) {
-		//	if (testing) {
-		//		return CanonicalArithmetic.isExpressionCanonicalNumeric(expr.children[1]);
-		//	}
-		//	else {
-		//		return [ proportionOfI(expr.children[0], false), CanonicalArithmetic.expr2CanonicalNumeric(expr.children[1]) ]
-		//	}
-		//}
 	}
 	else {
 		// pure imaginary
