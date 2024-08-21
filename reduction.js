@@ -394,6 +394,63 @@ Complex.exponentiation = async (exponentiation, session) => {
 		c = n2[0]; d = n2[1];
 	}
 	
+	// special case
+	
+	if (
+		a.isZero() &&
+		d.isZero() &&
+		c.hasIntegerValue()
+	) {
+		let factor = b.exponentiation(c, session);
+		
+		if (c instanceof CanonicalArithmetic.Decimal) {
+			c = new CanonicalArithmetic.Integer(c.decimal.toFixed());
+		}
+		
+		let expr;
+		
+		switch (c.integer % 4n) {
+			case 0n:
+				expr = CanonicalArithmetic.canonical2InternalNumber(factor);
+				break;
+			
+			case 1n:
+				if (factor.isOne()) {
+					expr = Formulae.createExpression("Math.Complex.Imaginary");
+				}
+				else {
+					expr = Formulae.createExpression(
+						"Math.Arithmetic.Multiplication",
+						CanonicalArithmetic.canonical2InternalNumber(factor),
+						Formulae.createExpression("Math.Complex.Imaginary")
+					);
+				}
+				break;
+			
+			case 2n:
+				factor = factor.negate();
+				expr = CanonicalArithmetic.canonical2InternalNumber(factor);
+				break;
+			
+			case 3n:
+				factor = factor.negate();
+				if (factor.isOne()) {
+					expr = expr = Formulae.createExpression("Math.Complex.Imaginary");
+				}
+				else {
+					expr = Formulae.createExpression(
+						"Math.Arithmetic.Multiplication",
+						CanonicalArithmetic.canonical2InternalNumber(factor),
+						Formulae.createExpression("Math.Complex.Imaginary")
+					);
+				}
+				break;
+		}
+		
+		exponentiation.replaceBy(expr);
+		return true;
+	}
+	
 	// decimal
 	
 	if (
