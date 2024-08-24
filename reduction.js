@@ -364,9 +364,13 @@ Complex.division = async (division, session) => {
 	}
 	
 	let common = c.multiplication(c, session).addition(d.multiplication(d, session), session);
+	
 	let real = a.multiplication(c, session).addition(b.multiplication(d, session), session).division(common, session);
 	let imag = b.multiplication(c, session).addition(a.negate().multiplication(d, session), session).division(common, session);
 	
+	let result = CanonicalArithmetic.createInternalComplex(real, imag);
+	
+	/*
 	let mult = Formulae.createExpression("Math.Arithmetic.Multiplication");
 	mult.addChild(CanonicalArithmetic.canonical2InternalNumber(imag));
 	mult.addChild(Formulae.createExpression("Math.Complex.Imaginary"))
@@ -374,6 +378,7 @@ Complex.division = async (division, session) => {
 	let result = Formulae.createExpression("Math.Arithmetic.Addition");
 	result.addChild(CanonicalArithmetic.canonical2InternalNumber(real));
 	result.addChild(mult);
+	*/
 	
 	division.replaceBy(result);
 	return true;
@@ -396,12 +401,17 @@ Complex.exponentiation = async (exponentiation, session) => {
 	
 	// special case
 	
+	console.log("a.isZero: " + a.isZero());
+	console.log("d.isZero: " + d.isZero());
+	console.log("c.hasIntegerValue: " + c.hasIntegerValue());
+	
 	if (
 		a.isZero() &&
 		d.isZero() &&
 		c.hasIntegerValue()
 	) {
 		let factor = b.exponentiation(c, session);
+		console.log(factor);
 		
 		if (c instanceof CanonicalArithmetic.Decimal) {
 			c = new CanonicalArithmetic.Integer(c.decimal.toFixed());
@@ -415,6 +425,14 @@ Complex.exponentiation = async (exponentiation, session) => {
 				break;
 			
 			case 1n:
+			case -3n:
+				expr = CanonicalArithmetic.createInternalComplex(
+					CanonicalArithmetic.INTEGER_ZERO,
+					factor,
+					session
+				);
+				
+				/*
 				if (factor.isOne()) {
 					expr = Formulae.createExpression("Math.Complex.Imaginary");
 				}
@@ -425,15 +443,25 @@ Complex.exponentiation = async (exponentiation, session) => {
 						Formulae.createExpression("Math.Complex.Imaginary")
 					);
 				}
+				*/
 				break;
 			
 			case 2n:
+			case -2n:
 				factor = factor.negate();
 				expr = CanonicalArithmetic.canonical2InternalNumber(factor);
 				break;
 			
 			case 3n:
+			case -1n:
 				factor = factor.negate();
+				expr = CanonicalArithmetic.createInternalComplex(
+					CanonicalArithmetic.INTEGER_ZERO,
+					factor,
+					session
+				);
+				
+				/*
 				if (factor.isOne()) {
 					expr = expr = Formulae.createExpression("Math.Complex.Imaginary");
 				}
@@ -444,6 +472,7 @@ Complex.exponentiation = async (exponentiation, session) => {
 						Formulae.createExpression("Math.Complex.Imaginary")
 					);
 				}
+				*/
 				break;
 		}
 		
