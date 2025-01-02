@@ -23,8 +23,8 @@ export class Complex extends Formulae.ReductionPackage {};
 /**
 	Complex conjugate of an expression
 		
+	a + bℹ*    ->   a - bℹ
 	number*    ->   number   (decimal, integer or rational)
-	ℹ*         ->   -ℹ
 	(x + y)*   ->   x* + y*
 	(x y)*     ->   x* y*
 	(x ÷ y)*   ->   x* ÷ y*
@@ -33,16 +33,23 @@ export class Complex extends Formulae.ReductionPackage {};
  */
  
 Complex.conjugate = async (conjugate, session) => {
-	let e = conjugate.children[0];
+	let expr = conjugate.children[0];
 	
-	if (e.isInternalNumber()) {
-		conjugate.replaceBy(e);
-		//session.log("Conjugate of a number is the same number");
+	if (expr.isInternalNumber()) {
+		let e = expr.get("Value");
+		
+		if (CanonicalArithmetic.isComplex(e)) {
+			conjugate.replaceBy(CanonicalArithmetic.createInternalNumber(e.conjugate()));
+			return true;
+		}
+		
+		conjugate.replaceBy(expr);
 		return true;
 	}
 	
-	let tag = e.getTag();
+	let tag = expr.getTag();
 	switch (tag) {
+		/*
 		case "Math.Complex.Imaginary": {
 			let result = Formulae.createExpression(
 				"Math.Arithmetic.Multiplication",
@@ -54,6 +61,7 @@ Complex.conjugate = async (conjugate, session) => {
 			session.reduce(result);
 			return true;
 		}
+		*/
 		
 		case "Math.Arithmetic.Addition":
 		case "Math.Arithmetic.Multiplication":
@@ -61,22 +69,21 @@ Complex.conjugate = async (conjugate, session) => {
 		case "Math.Arithmetic.Negative": {
 			let conj;
 			
-			for (let i = 0, n = e.children.length; i < n; ++i) {
+			for (let i = 0, n = expr.children.length; i < n; ++i) {
 				conj = Formulae.createExpression("Math.Complex.Conjugate");
-				conj.addChild(e.children[i]);
-				e.setChild(i, conj);
+				conj.addChild(expr.children[i]);
+				expr.setChild(i, conj);
 			}
-			conjugate.replaceBy(e);
-			//session.log("Conjugation of basic operations");
+			conjugate.replaceBy(expr);
 			
-			for (let i = 0, n = e.children.length; i < n; ++i) await session.reduce(e.children[i]);
-			await session.reduce(e);
+			for (let i = 0, n = expr.children.length; i < n; ++i) await session.reduce(expr.children[i]);
+			await session.reduce(expr);
 			
 			return true;
 		}
 		
 		case "Math.Complex.Conjugate": {
-			conjugate.replaceBy(e.children[0]);
+			conjugate.replaceBy(expr.children[0]);
 			//session.log("Conjugate of a conjugate is cancelled");
 			return true;
 		}
@@ -90,6 +97,7 @@ Complex.conjugate = async (conjugate, session) => {
 	If more than one found, subsitutes them by i, -i, 1 or -1
  */
 
+/*
 Complex.productContainingI = async (multiplication, session) => {
 	let pos, n = multiplication.children.length;
 	let occurrences = 0;
@@ -157,6 +165,7 @@ Complex.productContainingI = async (multiplication, session) => {
 	
 	return true;
 };
+*/
 
 /**
 	Returns
@@ -183,6 +192,7 @@ Complex.productContainingI = async (multiplication, session) => {
 		2/3 i   ->   Rational 2/3
  */
 
+/*
 let proportionOfI = (expr, testing) => {
 	let tag = expr.getTag();
 	
@@ -203,6 +213,7 @@ let proportionOfI = (expr, testing) => {
 	
 	return false;
 };
+*/
 
 /**
 	Groups proportions of I in an addition
@@ -213,6 +224,7 @@ let proportionOfI = (expr, testing) => {
 	5 + 2i - 2i      ->   5 + (2 - 2)i    ->   5 + 0i   ->   5 + 0   ->   5
  */
 
+/*
 Complex.additionContainingI = async (addition, session) => {
 	let pos, n = addition.children.length;
 	
@@ -295,6 +307,7 @@ Complex.additionContainingI = async (addition, session) => {
 	
 	return true;
 };
+*/
 
 /**
 	Returns
@@ -321,6 +334,7 @@ Complex.additionContainingI = async (addition, session) => {
 		2/3 i   ->   Rational 2/3
  */
 
+/*
 let numericComplex = (expr, testing) => {
 	// pure real
 	if (expr.isInternalNumber()) {
@@ -370,15 +384,13 @@ Complex.division = async (division, session) => {
 	
 	let result = CanonicalArithmetic.createInternalComplex(real, imag);
 	
-	/*
-	let mult = Formulae.createExpression("Math.Arithmetic.Multiplication");
-	mult.addChild(CanonicalArithmetic.canonical2InternalNumber(imag));
-	mult.addChild(Formulae.createExpression("Math.Complex.Imaginary"))
+	// let mult = Formulae.createExpression("Math.Arithmetic.Multiplication");
+	// mult.addChild(CanonicalArithmetic.canonical2InternalNumber(imag));
+	// mult.addChild(Formulae.createExpression("Math.Complex.Imaginary"))
 	
-	let result = Formulae.createExpression("Math.Arithmetic.Addition");
-	result.addChild(CanonicalArithmetic.canonical2InternalNumber(real));
-	result.addChild(mult);
-	*/
+	// let result = Formulae.createExpression("Math.Arithmetic.Addition");
+	//result.addChild(CanonicalArithmetic.canonical2InternalNumber(real));
+	// result.addChild(mult);
 	
 	division.replaceBy(result);
 	return true;
@@ -432,18 +444,16 @@ Complex.exponentiation = async (exponentiation, session) => {
 					session
 				);
 				
-				/*
-				if (factor.isOne()) {
-					expr = Formulae.createExpression("Math.Complex.Imaginary");
-				}
-				else {
-					expr = Formulae.createExpression(
-						"Math.Arithmetic.Multiplication",
-						CanonicalArithmetic.canonical2InternalNumber(factor),
-						Formulae.createExpression("Math.Complex.Imaginary")
-					);
-				}
-				*/
+				//if (factor.isOne()) {
+				//	expr = Formulae.createExpression("Math.Complex.Imaginary");
+				//}
+				//else {
+				//	expr = Formulae.createExpression(
+				//		"Math.Arithmetic.Multiplication",
+				//		CanonicalArithmetic.canonical2InternalNumber(factor),
+				//		Formulae.createExpression("Math.Complex.Imaginary")
+				//	);
+				//}
 				break;
 			
 			case 2n:
@@ -461,18 +471,16 @@ Complex.exponentiation = async (exponentiation, session) => {
 					session
 				);
 				
-				/*
-				if (factor.isOne()) {
-					expr = expr = Formulae.createExpression("Math.Complex.Imaginary");
-				}
-				else {
-					expr = Formulae.createExpression(
-						"Math.Arithmetic.Multiplication",
-						CanonicalArithmetic.canonical2InternalNumber(factor),
-						Formulae.createExpression("Math.Complex.Imaginary")
-					);
-				}
-				*/
+				//if (factor.isOne()) {
+				//	expr = expr = Formulae.createExpression("Math.Complex.Imaginary");
+				//}
+				//else {
+				//	expr = Formulae.createExpression(
+				//		"Math.Arithmetic.Multiplication",
+				//		CanonicalArithmetic.canonical2InternalNumber(factor),
+				//		Formulae.createExpression("Math.Complex.Imaginary")
+				//	);
+				//}
 				break;
 		}
 		
@@ -659,11 +667,13 @@ Complex.exponentiation = async (exponentiation, session) => {
 	await session.reduce(block);
 	return true;
 };
+*/
 
 Complex.setReducers = () => {
 	ReductionManager.addReducer("Math.Complex.Conjugate",         Complex.conjugate,           "Complex.conjugate");
-	ReductionManager.addReducer("Math.Arithmetic.Multiplication", Complex.productContainingI,  "Complex.productContainingI");
-	ReductionManager.addReducer("Math.Arithmetic.Addition",       Complex.additionContainingI, "Complex.additionContainingI");
-	ReductionManager.addReducer("Math.Arithmetic.Division",       Complex.division,            "Complex.division");
-	ReductionManager.addReducer("Math.Arithmetic.Exponentiation", Complex.exponentiation,      "Complex.exponentiation");
+	//ReductionManager.addReducer("Math.Arithmetic.Multiplication", Complex.productContainingI,  "Complex.productContainingI");
+	//ReductionManager.addReducer("Math.Arithmetic.Addition",       Complex.additionContainingI, "Complex.additionContainingI");
+	//ReductionManager.addReducer("Math.Arithmetic.Division",       Complex.division,            "Complex.division");
+	//ReductionManager.addReducer("Math.Arithmetic.Exponentiation", Complex.exponentiation,      "Complex.exponentiation");
 };
+
