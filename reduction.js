@@ -39,7 +39,7 @@ Complex.conjugate = async (conjugate, session) => {
 		let e = expr.get("Value");
 		
 		if (CanonicalArithmetic.isComplex(e)) {
-			conjugate.replaceBy(CanonicalArithmetic.createInternalNumber(e.conjugate()));
+			conjugate.replaceBy(CanonicalArithmetic.createInternalNumber(e.conjugate(), session));
 			return true;
 		}
 		
