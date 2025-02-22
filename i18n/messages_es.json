@@ -1,7 +1,8 @@
 {
 	"pathComplex" : "Matemáticas.Números complejos",
 	
-	"nameImaginary" : "Unidad imaginaria",
+	"nameImaginaryUnit" : "Unidad imaginaria",
+	
 	"nameConjugate" : "Complejo conjugado",
 	"leafConjugate" : "Complejo conjugado",
 	

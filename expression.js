@@ -75,7 +75,7 @@ Complex.setExpressions = function(module) {
 	
 	// literals
 	[
-		[ "Math.Complex",  "Imaginary", "ℹ" ]
+		[ "Math.Complex",  "ImaginaryUnit", "ℹ" ]
 	].forEach(row =>
 		Formulae.setExpression(module, row[0] + "." + row[1], {
 			clazz:      Expression.Literal,

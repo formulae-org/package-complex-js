@@ -50,7 +50,7 @@ Complex.conjugate = async (conjugate, session) => {
 	let tag = expr.getTag();
 	switch (tag) {
 		/*
-		case "Math.Complex.Imaginary": {
+		case "Math.Complex.ImaginaryUnit": {
 			let result = Formulae.createExpression(
 				"Math.Arithmetic.Multiplication",
 				CanonicalArithmetic.number2InternalNumber(-1),
@@ -103,7 +103,7 @@ Complex.productContainingI = async (multiplication, session) => {
 	let occurrences = 0;
 	
 	for (pos = 0; pos < n; ++pos) {
-		if (multiplication.children[pos].getTag() === "Math.Complex.Imaginary") {
+		if (multiplication.children[pos].getTag() === "Math.Complex.ImaginaryUnit") {
 			occurrences = 1;
 			break;
 		}
@@ -117,7 +117,7 @@ Complex.productContainingI = async (multiplication, session) => {
 	// performs multiplication with other numeric addends
 	
 	for (let i = n - 1; i > pos; --i) {
-		if (multiplication.children[i].getTag() === "Math.Complex.Imaginary") {
+		if (multiplication.children[i].getTag() === "Math.Complex.ImaginaryUnit") {
 			multiplication.removeChildAt(i);
 			++occurrences;
 		}
@@ -196,12 +196,12 @@ Complex.productContainingI = async (multiplication, session) => {
 let proportionOfI = (expr, testing) => {
 	let tag = expr.getTag();
 	
-	if (tag === "Math.Complex.Imaginary") return testing ? true : new CanonicalArithmetic.Integer(1);
+	if (tag === "Math.Complex.ImaginaryUnit") return testing ? true : new CanonicalArithmetic.Integer(1);
 	
 	if (tag === "Math.Arithmetic.Multiplication") {
 		if (expr.children.length !== 2) return false;
 		
-		if (expr.children[1].getTag() === "Math.Complex.Imaginary") {
+		if (expr.children[1].getTag() === "Math.Complex.ImaginaryUnit") {
 			if (testing) {
 				return expr.children[0].isInternalNumber();
 			}
@@ -270,7 +270,7 @@ Complex.additionContainingI = async (addition, session) => {
 	else {
 		//if (sum.isPositive()) {
 			if (sum.isOne()) {
-				let r = Formulae.createExpression("Math.Complex.Imaginary");
+				let r = Formulae.createExpression("Math.Complex.ImaginaryUnit");
 				addition.children[pos].replaceBy(r);
 			}
 			else {
@@ -278,7 +278,7 @@ Complex.additionContainingI = async (addition, session) => {
 				r.addChild(
 					CanonicalArithmetic.canonical2InternalNumber(sum)
 				);
-				r.addChild(Formulae.createExpression("Math.Complex.Imaginary"));
+				r.addChild(Formulae.createExpression("Math.Complex.ImaginaryUnit"));
 				addition.children[pos].replaceBy(r);
 			}
 		//}
@@ -286,7 +286,7 @@ Complex.additionContainingI = async (addition, session) => {
 		//	sum = sum.negate();
 		//	let r = Formulae.createExpression("Math.Arithmetic.Negative");
 		//	if (sum.isOne()) {
-		//		r.addChild(Formulae.createExpression("Math.Complex.Imaginary"))
+		//		r.addChild(Formulae.createExpression("Math.Complex.ImaginaryUnit"))
 		//		addition.children[pos].replaceBy(r);
 		//	}
 		//	else {
@@ -294,7 +294,7 @@ Complex.additionContainingI = async (addition, session) => {
 		//		m.addChild(
 		//			CanonicalArithmetic.canonical2InternalNumber(sum)
 		//		);
-		//		m.addChild(Formulae.createExpression("Math.Complex.Imaginary"));
+		//		m.addChild(Formulae.createExpression("Math.Complex.ImaginaryUnit"));
 		//		r.addChild(m);
 		//		addition.children[pos].replaceBy(r);
 		//	}
@@ -386,7 +386,7 @@ Complex.division = async (division, session) => {
 	
 	// let mult = Formulae.createExpression("Math.Arithmetic.Multiplication");
 	// mult.addChild(CanonicalArithmetic.canonical2InternalNumber(imag));
-	// mult.addChild(Formulae.createExpression("Math.Complex.Imaginary"))
+	// mult.addChild(Formulae.createExpression("Math.Complex.ImaginaryUnit"))
 	
 	// let result = Formulae.createExpression("Math.Arithmetic.Addition");
 	//result.addChild(CanonicalArithmetic.canonical2InternalNumber(real));
@@ -445,13 +445,13 @@ Complex.exponentiation = async (exponentiation, session) => {
 				);
 				
 				//if (factor.isOne()) {
-				//	expr = Formulae.createExpression("Math.Complex.Imaginary");
+				//	expr = Formulae.createExpression("Math.Complex.ImaginaryUnit");
 				//}
 				//else {
 				//	expr = Formulae.createExpression(
 				//		"Math.Arithmetic.Multiplication",
 				//		CanonicalArithmetic.canonical2InternalNumber(factor),
-				//		Formulae.createExpression("Math.Complex.Imaginary")
+				//		Formulae.createExpression("Math.Complex.ImaginaryUnit")
 				//	);
 				//}
 				break;
@@ -472,13 +472,13 @@ Complex.exponentiation = async (exponentiation, session) => {
 				);
 				
 				//if (factor.isOne()) {
-				//	expr = expr = Formulae.createExpression("Math.Complex.Imaginary");
+				//	expr = expr = Formulae.createExpression("Math.Complex.ImaginaryUnit");
 				//}
 				//else {
 				//	expr = Formulae.createExpression(
 				//		"Math.Arithmetic.Multiplication",
 				//		CanonicalArithmetic.canonical2InternalNumber(factor),
-				//		Formulae.createExpression("Math.Complex.Imaginary")
+				//		Formulae.createExpression("Math.Complex.ImaginaryUnit")
 				//	);
 				//}
 				break;
@@ -545,7 +545,7 @@ Complex.exponentiation = async (exponentiation, session) => {
 				Formulae.createExpression(
 					"Math.Arithmetic.Multiplication",
 					CanonicalArithmetic.number2InternalNumber(im, true, session),
-					Formulae.createExpression("Math.Complex.Imaginary")
+					Formulae.createExpression("Math.Complex.ImaginaryUnit")
 				)
 			)
 		);
@@ -658,7 +658,7 @@ Complex.exponentiation = async (exponentiation, session) => {
 					"Math.Trigonometric.Sine",
 					symbolArg.clone()
 				),
-				Formulae.createExpression("Math.Complex.Imaginary")
+				Formulae.createExpression("Math.Complex.ImaginaryUnit")
 			)
 		)
 	);
@@ -670,7 +670,8 @@ Complex.exponentiation = async (exponentiation, session) => {
 */
 
 Complex.setReducers = () => {
-	ReductionManager.addReducer("Math.Complex.Conjugate",         Complex.conjugate,           "Complex.conjugate");
+	ReductionManager.addReducer("Math.Complex.Conjugate", Complex.conjugate, "Complex.conjugate");
+	
 	//ReductionManager.addReducer("Math.Arithmetic.Multiplication", Complex.productContainingI,  "Complex.productContainingI");
 	//ReductionManager.addReducer("Math.Arithmetic.Addition",       Complex.additionContainingI, "Complex.additionContainingI");
 	//ReductionManager.addReducer("Math.Arithmetic.Division",       Complex.division,            "Complex.division");

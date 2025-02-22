@@ -21,6 +21,6 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 export class Complex extends Formulae.EditionPackage {};
 
 Complex.setEditions = function() {
-	Formulae.addEdition(this.messages.pathComplex, null, "ℹ",                         () => Expression.replacingEdition("Math.Complex.Imaginary"));
+	Formulae.addEdition(this.messages.pathComplex, null, "ℹ",                         () => Expression.replacingEdition("Math.Complex.ImaginaryUnit"));
 	Formulae.addEdition(this.messages.pathComplex, null, this.messages.leafConjugate, () => Expression.wrapperEdition("Math.Complex.Conjugate"));
 };
