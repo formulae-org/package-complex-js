@@ -38,8 +38,8 @@ Complex.conjugate = async (conjugate, session) => {
 	if (expr.isInternalNumber()) {
 		let e = expr.get("Value");
 		
-		if (CanonicalArithmetic.isComplex(e)) {
-			conjugate.replaceBy(CanonicalArithmetic.createInternalNumber(e.conjugate(), session));
+		if (Arithmetic.isComplex(e)) {
+			conjugate.replaceBy(Arithmetic.createInternalNumber(e.conjugate(), session));
 			return true;
 		}
 		
@@ -53,7 +53,7 @@ Complex.conjugate = async (conjugate, session) => {
 		case "Math.Complex.ImaginaryUnit": {
 			let result = Formulae.createExpression(
 				"Math.Arithmetic.Multiplication",
-				CanonicalArithmetic.number2InternalNumber(-1),
+				Arithmetic.number2InternalNumber(-1),
 				e
 			);
 			conjugate.replaceBy(result);
@@ -129,8 +129,8 @@ Complex.productContainingI = async (multiplication, session) => {
 	switch (occurrences % 4) {
 		case 0:
 			multiplication.children[pos].replaceBy(
-				CanonicalArithmetic.canonical2InternalNumber(
-					new CanonicalArithmetic.Integer(1n)
+				Arithmetic.canonical2InternalNumber(
+					new Arithmetic.Integer(1n)
 				)
 			);
 			break;
@@ -141,8 +141,8 @@ Complex.productContainingI = async (multiplication, session) => {
 		
 		case 2:
 			multiplication.children[pos].replaceBy(
-				CanonicalArithmetic.canonical2InternalNumber(
-					new CanonicalArithmetic.Integer(-1n)
+				Arithmetic.canonical2InternalNumber(
+					new Arithmetic.Integer(-1n)
 				)
 			);
 			break;
@@ -196,7 +196,7 @@ Complex.productContainingI = async (multiplication, session) => {
 let proportionOfI = (expr, testing) => {
 	let tag = expr.getTag();
 	
-	if (tag === "Math.Complex.ImaginaryUnit") return testing ? true : new CanonicalArithmetic.Integer(1);
+	if (tag === "Math.Complex.ImaginaryUnit") return testing ? true : new Arithmetic.Integer(1);
 	
 	if (tag === "Math.Arithmetic.Multiplication") {
 		if (expr.children.length !== 2) return false;
@@ -263,7 +263,7 @@ Complex.additionContainingI = async (addition, session) => {
 		}
 		else {
 			addition.children[0].replaceBy(
-				CanonicalArithmetic.canonical2InternalNumber(sum)
+				Arithmetic.canonical2InternalNumber(sum)
 			);
 		}
 	}
@@ -276,7 +276,7 @@ Complex.additionContainingI = async (addition, session) => {
 			else {
 				let r = Formulae.createExpression("Math.Arithmetic.Multiplication");
 				r.addChild(
-					CanonicalArithmetic.canonical2InternalNumber(sum)
+					Arithmetic.canonical2InternalNumber(sum)
 				);
 				r.addChild(Formulae.createExpression("Math.Complex.ImaginaryUnit"));
 				addition.children[pos].replaceBy(r);
@@ -292,7 +292,7 @@ Complex.additionContainingI = async (addition, session) => {
 		//	else {
 		//		let m = Formulae.createExpression("Math.Arithmetic.Multiplication");
 		//		m.addChild(
-		//			CanonicalArithmetic.canonical2InternalNumber(sum)
+		//			Arithmetic.canonical2InternalNumber(sum)
 		//		);
 		//		m.addChild(Formulae.createExpression("Math.Complex.ImaginaryUnit"));
 		//		r.addChild(m);
@@ -338,7 +338,7 @@ Complex.additionContainingI = async (addition, session) => {
 let numericComplex = (expr, testing) => {
 	// pure real
 	if (expr.isInternalNumber()) {
-		return testing ? true : [ expr.get("Value"), CanonicalArithmetic.number2Canonical(0) ];
+		return testing ? true : [ expr.get("Value"), Arithmetic.number2Canonical(0) ];
 	}
 	
 	let tag = expr.getTag();
@@ -356,7 +356,7 @@ let numericComplex = (expr, testing) => {
 	}
 	else {
 		// pure imaginary
-		return testing ? proportionOfI(expr, true) : [ CanonicalArithmetic.number2Canonical(0), proportionOfI(expr, false) ];
+		return testing ? proportionOfI(expr, true) : [ Arithmetic.number2Canonical(0), proportionOfI(expr, false) ];
 	}
 	
 	return false;
@@ -382,14 +382,14 @@ Complex.division = async (division, session) => {
 	let real = a.multiplication(c, session).addition(b.multiplication(d, session), session).division(common, session);
 	let imag = b.multiplication(c, session).addition(a.negate().multiplication(d, session), session).division(common, session);
 	
-	let result = CanonicalArithmetic.createInternalComplex(real, imag);
+	let result = Arithmetic.createInternalComplex(real, imag);
 	
 	// let mult = Formulae.createExpression("Math.Arithmetic.Multiplication");
-	// mult.addChild(CanonicalArithmetic.canonical2InternalNumber(imag));
+	// mult.addChild(Arithmetic.canonical2InternalNumber(imag));
 	// mult.addChild(Formulae.createExpression("Math.Complex.ImaginaryUnit"))
 	
 	// let result = Formulae.createExpression("Math.Arithmetic.Addition");
-	//result.addChild(CanonicalArithmetic.canonical2InternalNumber(real));
+	//result.addChild(Arithmetic.canonical2InternalNumber(real));
 	// result.addChild(mult);
 	
 	division.replaceBy(result);
@@ -425,21 +425,21 @@ Complex.exponentiation = async (exponentiation, session) => {
 		let factor = b.exponentiation(c, session);
 		console.log(factor);
 		
-		if (c instanceof CanonicalArithmetic.Decimal) {
-			c = new CanonicalArithmetic.Integer(c.decimal.toFixed());
+		if (c instanceof Arithmetic.Decimal) {
+			c = new Arithmetic.Integer(c.decimal.toFixed());
 		}
 		
 		let expr;
 		
 		switch (c.integer % 4n) {
 			case 0n:
-				expr = CanonicalArithmetic.canonical2InternalNumber(factor);
+				expr = Arithmetic.canonical2InternalNumber(factor);
 				break;
 			
 			case 1n:
 			case -3n:
-				expr = CanonicalArithmetic.createInternalComplex(
-					CanonicalArithmetic.INTEGER_ZERO,
+				expr = Arithmetic.createInternalComplex(
+					Arithmetic.INTEGER_ZERO,
 					factor,
 					session
 				);
@@ -450,7 +450,7 @@ Complex.exponentiation = async (exponentiation, session) => {
 				//else {
 				//	expr = Formulae.createExpression(
 				//		"Math.Arithmetic.Multiplication",
-				//		CanonicalArithmetic.canonical2InternalNumber(factor),
+				//		Arithmetic.canonical2InternalNumber(factor),
 				//		Formulae.createExpression("Math.Complex.ImaginaryUnit")
 				//	);
 				//}
@@ -459,14 +459,14 @@ Complex.exponentiation = async (exponentiation, session) => {
 			case 2n:
 			case -2n:
 				factor = factor.negate();
-				expr = CanonicalArithmetic.canonical2InternalNumber(factor);
+				expr = Arithmetic.canonical2InternalNumber(factor);
 				break;
 			
 			case 3n:
 			case -1n:
 				factor = factor.negate();
-				expr = CanonicalArithmetic.createInternalComplex(
-					CanonicalArithmetic.INTEGER_ZERO,
+				expr = Arithmetic.createInternalComplex(
+					Arithmetic.INTEGER_ZERO,
 					factor,
 					session
 				);
@@ -477,7 +477,7 @@ Complex.exponentiation = async (exponentiation, session) => {
 				//else {
 				//	expr = Formulae.createExpression(
 				//		"Math.Arithmetic.Multiplication",
-				//		CanonicalArithmetic.canonical2InternalNumber(factor),
+				//		Arithmetic.canonical2InternalNumber(factor),
 				//		Formulae.createExpression("Math.Complex.ImaginaryUnit")
 				//	);
 				//}
@@ -491,15 +491,15 @@ Complex.exponentiation = async (exponentiation, session) => {
 	// decimal
 	
 	if (
-		a instanceof CanonicalArithmetic.Decimal ||
-		b instanceof CanonicalArithmetic.Decimal ||
-		c instanceof CanonicalArithmetic.Decimal ||
-		d instanceof CanonicalArithmetic.Decimal
+		a instanceof Arithmetic.Decimal ||
+		b instanceof Arithmetic.Decimal ||
+		c instanceof Arithmetic.Decimal ||
+		d instanceof Arithmetic.Decimal
 	) {
-		if (!(a instanceof CanonicalArithmetic.Decimal)) a = a.toDecimal(session);
-		if (!(b instanceof CanonicalArithmetic.Decimal)) b = b.toDecimal(session);
-		if (!(c instanceof CanonicalArithmetic.Decimal)) c = c.toDecimal(session);
-		if (!(d instanceof CanonicalArithmetic.Decimal)) d = d.toDecimal(session);
+		if (!(a instanceof Arithmetic.Decimal)) a = a.toDecimal(session);
+		if (!(b instanceof Arithmetic.Decimal)) b = b.toDecimal(session);
+		if (!(c instanceof Arithmetic.Decimal)) c = c.toDecimal(session);
+		if (!(d instanceof Arithmetic.Decimal)) d = d.toDecimal(session);
 		
 		a = a.decimal;
 		b = b.decimal;
@@ -541,10 +541,10 @@ Complex.exponentiation = async (exponentiation, session) => {
 		exponentiation.replaceBy(
 			Formulae.createExpression(
 				"Math.Arithmetic.Addition",
-				CanonicalArithmetic.number2InternalNumber(re, true, session),
+				Arithmetic.number2InternalNumber(re, true, session),
 				Formulae.createExpression(
 					"Math.Arithmetic.Multiplication",
-					CanonicalArithmetic.number2InternalNumber(im, true, session),
+					Arithmetic.number2InternalNumber(im, true, session),
 					Formulae.createExpression("Math.Complex.ImaginaryUnit")
 				)
 			)
@@ -575,7 +575,7 @@ Complex.exponentiation = async (exponentiation, session) => {
 				symbolR.clone(),
 				Formulae.createExpression(
 					"Math.Arithmetic.SquareRoot",
-					CanonicalArithmetic.canonical2InternalNumber(
+					Arithmetic.canonical2InternalNumber(
 						a.multiplication(a, session).addition(b.multiplication(b, session), session)
 					)
 				)
@@ -588,8 +588,8 @@ Complex.exponentiation = async (exponentiation, session) => {
 				symbolAngle.clone(),
 				Formulae.createExpression(
 					"Math.Trigonometric.ArcTangent2",
-					CanonicalArithmetic.canonical2InternalNumber(b),
-					CanonicalArithmetic.canonical2InternalNumber(a)
+					Arithmetic.canonical2InternalNumber(b),
+					Arithmetic.canonical2InternalNumber(a)
 				)
 			)
 		),
@@ -603,15 +603,15 @@ Complex.exponentiation = async (exponentiation, session) => {
 					Formulae.createExpression(
 						"Math.Arithmetic.Exponentiation",
 						symbolR.clone(),
-						CanonicalArithmetic.canonical2InternalNumber(c)
+						Arithmetic.canonical2InternalNumber(c)
 					),
 					Formulae.createExpression(
 						"Math.Arithmetic.Exponentiation",
 						Formulae.createExpression("Math.Constant.Euler"),
 						Formulae.createExpression(
 							"Math.Arithmetic.Multiplication",
-							CanonicalArithmetic.number2InternalNumber(-1),
-							CanonicalArithmetic.canonical2InternalNumber(d),
+							Arithmetic.number2InternalNumber(-1),
+							Arithmetic.canonical2InternalNumber(d),
 							symbolAngle.clone()
 						)
 					)
@@ -627,7 +627,7 @@ Complex.exponentiation = async (exponentiation, session) => {
 					"Math.Arithmetic.Addition",
 					Formulae.createExpression(
 						"Math.Arithmetic.Multiplication",
-						CanonicalArithmetic.canonical2InternalNumber(d),
+						Arithmetic.canonical2InternalNumber(d),
 						Formulae.createExpression(
 							"Math.Transcendental.NaturalLogarithm",
 							symbolR.clone()
@@ -635,7 +635,7 @@ Complex.exponentiation = async (exponentiation, session) => {
 					),
 					Formulae.createExpression(
 						"Math.Arithmetic.Multiplication",
-						CanonicalArithmetic.canonical2InternalNumber(c),
+						Arithmetic.canonical2InternalNumber(c),
 						symbolAngle.clone()
 					)
 				)
