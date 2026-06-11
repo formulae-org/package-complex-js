@@ -1,16 +1,10 @@
 # package-complex-js
 
-Complex arithmetic package for the [Fōrmulæ](https://formulae.org) programming language.
-
-Fōrmulæ is also a software framework for visualization, edition and manipulation of complex expressions, from many fields. The code for an specific field —i.e. arithmetics— is encapsulated in a single unit called a Fōrmulæ **package**.
+Complex arithmetic package for [Fōrmulæ](https://formulae.org) — the visual environment for **computing**, **composing**, and **conversing** with tree-structured expressions.
 
 This repository contains the source code for the **complex arithmetic package**. It is intended to the computation of many arithmetical and mathematical operations with complex numbers.
 
-The GitHub organization [formulae-org](https://github.com/formulae-org) encompasses the source code for the rest of packages, as well as the [web application](https://github.com/formulae-org/formulae-js).
-
-<!--
-Take a look at this [tutorial](https://formulae.org/?script=tutorials/Complex) to know the capabilities of the Fōrmulæ arithmetic package.
--->
+> Part of the [formulae-org](https://github.com/formulae-org) organization: the [web application](https://github.com/formulae-org/formulae-js) plus one repository per package.
 
 ### Capabilities ###
 
