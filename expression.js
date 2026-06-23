@@ -16,12 +16,11 @@ You should have received a copy of the GNU Affero General Public License
 along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
 
-'use strict';
+"use strict";
 
 export class Complex extends Formulae.ExpressionPackage {};
 
 Complex.conjugateStyle = 0; // 0: x*   1: upper line
-
 
 Complex.Conjugate = class extends Expression.SuperscriptedLiteral {
 	getTag() {
@@ -117,7 +116,7 @@ Complex.onConfiguration = () => {
 	
 	col.appendChild(document.createElement("br"));
 	col.appendChild(document.createElement("br"));
-		
+	
 	radio = document.createElement("input"); radio.type = "radio"; radio.addEventListener("click", () => Complex.onChangeConjugateStyle(1));
 	col.appendChild(radio);
 	
