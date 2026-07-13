@@ -130,7 +130,8 @@ Complex.onConfiguration = () => {
 
 Complex.onChangeConjugateStyle = function(pos) {
 	Formulae.resetModal();
-	
+
 	Complex.conjugateStyle = pos;
 	Formulae.refreshHandlers();
+	Formulae.loadReloadEditions(); // rebuild the edition panel so the conjugate icon reflects the new style
 };

@@ -21,6 +21,14 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 export class Complex extends Formulae.EditionPackage {};
 
 Complex.setEditions = function() {
-	Formulae.addEdition(this.messages.pathComplex, null, "ℹ",                         () => Expression.replacingEdition("Math.Complex.ImaginaryUnit"));
-	Formulae.addEdition(this.messages.pathComplex, null, this.messages.leafConjugate, () => Expression.wrapperEdition("Math.Complex.Conjugate"));
+	// Imaginary unit — replacing edition; plain-text symbol (like π, e, ∞)
+	Formulae.addEdition(
+		this.messages.pathComplex,
+		"ℹ",
+		this.messages.nameImaginaryUnit,
+		() => Expression.replacingEdition("Math.Complex.ImaginaryUnit")
+	);
+
+	// Complex conjugate — wrapper edition; icon = Conjugate(▮)
+	Formulae.addWrapperEditions(this.messages, "Complex", "Math.Complex", [ "Conjugate" ]);
 };
